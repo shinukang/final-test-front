@@ -19,13 +19,15 @@ pipeline {
 
         stage('Build & Push Docker Image') {
             steps {
-                script {
-                    docker.withRegistry('', 'docker-hub-credentials') {
-                        // VITE_BACKEND_URL 인자를 사용하여 빌드 시 백엔드 주소 주입
-                        def customImage = docker.build("${DOCKER_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}", "--build-arg VITE_BACKEND_URL=${BACKEND_API_URL} -f frontend/Dockerfile frontend/")
-                        customImage.push()
-                        customImage.push("latest")
-                    }
+                // 'docker-hub-credentials' ID를 가진 자격 증명을 사용하여 로그인
+                withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
+                    sh """
+                    echo \$DOCKER_PASSWORD | docker login -u \$DOCKER_USERNAME --password-stdin
+                    docker build --build-arg VITE_BACKEND_URL=${BACKEND_API_URL} -t ${DOCKER_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG} -f frontend/Dockerfile frontend/
+                    docker tag ${DOCKER_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG} ${DOCKER_REGISTRY}/${IMAGE_NAME}:latest
+                    docker push ${DOCKER_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}
+                    docker push ${DOCKER_REGISTRY}/${IMAGE_NAME}:latest
+                    """
                 }
             }
         }
