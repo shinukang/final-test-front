@@ -22,7 +22,7 @@ onMounted(() => {
 <template>
   <div class="container">
     <div class="header">
-      <h1>게시글 목록 V3</h1>
+      <h1>게시글 목록 V4</h1>
       <router-link :to="{name: 'PostCreate'}" class="btn primary">글쓰기</router-link>
     </div>
     <div class="post-list">
